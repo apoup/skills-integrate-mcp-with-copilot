@@ -198,3 +198,66 @@ footer {
   padding: 20px;
   color: #666;
 }
+
+/* Announcement Card Styles */
+#announcements-container {
+  max-width: 100%;
+}
+
+.announcement-card {
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid #ff9800;
+  border-radius: 5px;
+  background-color: #fffbf0;
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.announcement-header h5 {
+  color: #1a237e;
+  margin: 0;
+}
+
+.announcement-type {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.announcement-type[data-type="event"] {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+.announcement-type[data-type="update"] {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.announcement-card p {
+  color: #333;
+  margin: 10px 0;
+  line-height: 1.5;
+}
+
+.announcement-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.announcement-footer small {
+  color: #999;
+  font-style: italic;
+}

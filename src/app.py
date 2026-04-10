@@ -8,6 +8,9 @@ for extracurricular activities at Mergington High School.
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from datetime import datetime
+from typing import List
 import os
 from pathlib import Path
 
@@ -18,6 +21,25 @@ app = FastAPI(title="Mergington High School API",
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
+
+# Pydantic models for announcements
+class AnnouncementCreate(BaseModel):
+    title: str
+    content: str
+    type: str = "general"  # "general", "event", "update"
+
+class Announcement(BaseModel):
+    id: int
+    activity_name: str
+    title: str
+    content: str
+    type: str
+    created_at: str
+    created_by: str
+
+# In-memory announcement database
+announcements = {}
+announcement_counter = 0
 
 # In-memory activity database
 activities = {
@@ -111,6 +133,69 @@ def signup_for_activity(activity_name: str, email: str):
 
 
 @app.delete("/activities/{activity_name}/unregister")
+
+
+@app.get("/activities/{activity_name}/announcements")
+def get_announcements(activity_name: str):
+    """Get all announcements for an activity"""
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    # Return announcements for this activity
+    activity_announcements = announcements.get(activity_name, [])
+    return {"activity_name": activity_name, "announcements": activity_announcements}
+
+
+@app.post("/activities/{activity_name}/announcements")
+def create_announcement(activity_name: str, announcement: AnnouncementCreate, created_by: str = "admin"):
+    """Create a new announcement for an activity"""
+    global announcement_counter
+
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    # Create announcement
+    announcement_id = announcement_counter
+    announcement_counter += 1
+
+    new_announcement = {
+        "id": announcement_id,
+        "activity_name": activity_name,
+        "title": announcement.title,
+        "content": announcement.content,
+        "type": announcement.type,
+        "created_at": datetime.now().isoformat(),
+        "created_by": created_by
+    }
+
+    # Store announcement
+    if activity_name not in announcements:
+        announcements[activity_name] = []
+    announcements[activity_name].append(new_announcement)
+
+    return {"message": f"Announcement created for {activity_name}", "announcement": new_announcement}
+
+
+@app.delete("/activities/{activity_name}/announcements/{announcement_id}")
+def delete_announcement(activity_name: str, announcement_id: int):
+    """Delete an announcement from an activity"""
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    # Check if announcements exist for this activity
+    if activity_name not in announcements:
+        raise HTTPException(status_code=404, detail="No announcements found for this activity")
+
+    # Find and delete the announcement
+    for i, ann in enumerate(announcements[activity_name]):
+        if ann["id"] == announcement_id:
+            deleted = announcements[activity_name].pop(i)
+            return {"message": f"Announcement {announcement_id} deleted", "announcement": deleted}
+
+    raise HTTPException(status_code=404, detail="Announcement not found")
 def unregister_from_activity(activity_name: str, email: str):
     """Unregister a student from an activity"""
     # Validate activity exists
