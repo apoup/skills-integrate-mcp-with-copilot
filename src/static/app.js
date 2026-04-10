@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const announcementsList = document.getElementById("announcements-list");
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -66,6 +67,54 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  // Function to fetch and display announcements
+  async function fetchAnnouncements(activityName) {
+    try {
+      const response = await fetch(
+        `/activities/${encodeURIComponent(activityName)}/announcements`
+      );
+      const data = await response.json();
+
+      announcementsList.innerHTML = "";
+
+      if (data.announcements.length === 0) {
+        announcementsList.innerHTML =
+          "<p><em>No announcements yet for this activity.</em></p>";
+        return;
+      }
+
+      data.announcements.forEach((announcement) => {
+        const announcementCard = document.createElement("div");
+        announcementCard.className = "announcement-card";
+        announcementCard.innerHTML = `
+          <div class="announcement-header">
+            <h5>${announcement.title}</h5>
+            <span class="announcement-type">${announcement.type}</span>
+          </div>
+          <p>${announcement.content}</p>
+          <div class="announcement-footer">
+            <small>By ${announcement.created_by} on ${new Date(announcement.created_at).toLocaleDateString()}</small>
+          </div>
+        `;
+        announcementsList.appendChild(announcementCard);
+      });
+    } catch (error) {
+      announcementsList.innerHTML =
+        "<p>Failed to load announcements.</p>";
+      console.error("Error fetching announcements:", error);
+    }
+  }
+
+  // Handle activity selection to show announcements
+  activitySelect.addEventListener("change", (event) => {
+    if (event.target.value) {
+      fetchAnnouncements(event.target.value);
+    } else {
+      announcementsList.innerHTML =
+        "<p>Select an activity to view announcements...</p>";
+    }
+  });
 
   // Handle unregister functionality
   async function handleUnregister(event) {
